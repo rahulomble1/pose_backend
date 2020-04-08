@@ -1,8 +1,8 @@
+from flask_jwt_extended import jwt_required, get_jwt_claims
 from flask_restful import Resource, reqparse
 from resource.encode import decode_audio_write_file
 from resource.exercise import Exercise
 from resource.speech import speech_to_text
-from resource.session import open_and_load_session, intensity_exercise_type
 from resource.user import User
 
 
@@ -13,6 +13,7 @@ class Voice(Resource):
                         required=True,
                         help="This field cannot be left empty")
 
+    @jwt_required
     def post(self):
 
         args = Voice.parser.parse_args()
@@ -22,20 +23,16 @@ class Voice(Resource):
         text = "exercise"
         print("transcribed text", text)
         if "exercise" in text:
-            params = open_and_load_session()
-            username = params['username']
+            username = get_jwt_claims()['username']
             user = User.find_by_username(username)
-            print('###########', user.age)
+
             try:
                 if user and user.age > 45:
-                    list_excercises = Exercise.senior_excercise()
-                    print('###########', list_excercises)
-                    intensity_exercise_type('basic low', 'senior')
-                    return {"Excercise": list_excercises}, 200
+                    exercise_list = Exercise.senior_excercise()
+                    return {"Exercise": exercise_list}, 200
                 elif user and user.age < 45:
-                    intensity_exercise_type('basic low', 'senior')
-                    list_excercises = Exercise.youth_excercise()
-                    return {"Excercise": list_excercises}, 200
+                    exercise_list = Exercise.youth_excercise()
+                    return {"Exercise": exercise_list}, 200
             except:
                 return {"message": 'internal server error'}, 501
 

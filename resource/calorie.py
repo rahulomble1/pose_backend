@@ -1,8 +1,8 @@
+from flask_jwt_extended import jwt_required, get_jwt_claims
 from flask_restful import Resource, reqparse
 from resource.encode import decode_audio_write_file
 from resource.speech import speech_to_text
 from resource.user import User
-from resource.session import open_and_load_session
 
 
 class Calorie(Resource):
@@ -12,12 +12,12 @@ class Calorie(Resource):
                         required=True,
                         help="This field cannot be left empty")
 
+    @jwt_required
     def post(self):
 
         args = Calorie.parser.parse_args()
-        params = open_and_load_session()
-        weight = params['weight']
-        intensity = params['intensity']
+        weight = get_jwt_claims()['weight']
+        intensity = "basic low"
 
         MET_vector = {"basic low": 2, "intermediate medium": 5, "advanced high": 7}
         t_min = args['time'] / 60

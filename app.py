@@ -1,17 +1,25 @@
 from flask import Flask, jsonify, request
 import json
+
+from flask_jwt_extended import JWTManager
 from flask_restful import Resource, Api
 
 from resource.calorie import Calorie
 from resource.exercise import Exercise
 from flask_mail import Mail, Message
 from resource.encode import encode_audio, decode_audio_write_file
-from resource.login import Login
+# from resource.login import Login
+from resource.security import authenticate, identity
 from resource.user import UserRegister
 from resource.voice import Voice
+from flask_jwt import JWT, jwt_required
 
 app = Flask(__name__)
 api = Api(app)
+
+app.config['JWT_SECRET_KEY'] = 'physio'
+
+jwt = JWTManager(app)
 
 with open('resource/config.json', 'r') as file:
     params = json.load(file)['params']
@@ -29,12 +37,6 @@ mail_settings = {
 app.config.update(mail_settings)
 mail = Mail(app)
 mail.init_app(app)
-
-api.add_resource(Exercise, '/exercise')
-api.add_resource(UserRegister, '/register')
-api.add_resource(Login, '/login')
-api.add_resource(Calorie, '/calorie')
-api.add_resource(Voice, '/voice')
 
 
 @app.route('/email', methods=['POST'])
@@ -93,6 +95,48 @@ def get_ready():
     except:
         return jsonify({"message": "Encoding Failed"}), 500
     return jsonify({"exercise_level": str(ready)}), 200
+
+
+from flask_jwt_extended import create_access_token
+from flask_restful import Resource, reqparse
+from werkzeug.security import safe_str_cmp
+from resource.user import User
+
+
+class Login(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('username',
+                        type=str,
+                        required=True,
+                        help="This field cannot be left blank")
+    parser.add_argument('password',
+                        type=str,
+                        required=True,
+                        help="This field cannot be left blank")
+
+    def post(self):
+        args = Login.parser.parse_args()
+        user = User.find_by_username(args['username'])
+
+        if user and safe_str_cmp(user.password, args['password']):
+            ret = {'access_token': create_access_token(user.username)}
+            return ret, 200
+        return {"message": "please check the credentials"}, 401
+
+    @jwt.user_claims_loader
+    def add_claims_to_access_token(self):
+        args = Login.parser.parse_args()
+        user = User.find_by_username(args['username'])
+        return {'username': user.username,
+                'weight': user.weight,
+                'age': user.age}
+
+
+api.add_resource(Exercise, '/exercise')
+api.add_resource(UserRegister, '/register')
+api.add_resource(Login, '/login')
+api.add_resource(Calorie, '/calorie')
+api.add_resource(Voice, '/voice')
 
 
 if __name__ == "__main__":
