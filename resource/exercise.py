@@ -57,19 +57,6 @@ exercise_list = [
 
 
 class Exercise(Resource):
-    # def post(self):
-    #     global exercise_list
-    #     data = request.get_json()
-    #     decode_audio_write_file(data["audio"])
-    #
-    #     text = speech_to_text('resource/abc.mp3')
-    #
-    #     if "good" in text:
-    #         return exercise_list[6]
-    #     elif "average" in text:
-    #         return exercise_list[4]
-    #     elif "bad" in text:
-    #         return exercise_list[7]
 
     parser = reqparse.RequestParser()
     parser.add_argument('exercise_name',
