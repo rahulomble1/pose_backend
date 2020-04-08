@@ -1,0 +1,18 @@
+version: '3.3'
+
+services:
+  pose-backend-service_flask:
+    build: .
+    container_name: flask
+    restart: always
+    environment:
+    - GOOGLE_APPLICATION_CREDENTIALS=speechPose-d839583b988e.json
+    network_mode: "host"
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    depends_on:
+      - pose-backend-service_flask
+    ports:
+    -  8084:8084

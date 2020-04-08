@@ -1,0 +1,8 @@
+{
+  "params": {
+    "subject":"you have received your exercise session.",
+    "body": "Click on the link to access your exercise session: https://physio.coreviewsystems.com:8080/app/welcome",
+    "username": "physio.coreviewsystems@gmail.com",
+    "password": "coreview"
+  }
+}
