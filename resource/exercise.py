@@ -120,8 +120,42 @@ class Exercise(Resource):
         Exercises = []
 
         for row in result.fetchall():
-            exercise = {"exercise_name": row[0], "exercise_type": row[1], "intensity": row[2],
-                        "duration": row[3], "source": row[4]}
+            exercise = {"_id": row[0], "exercise_name": row[1], "exercise_type": row[2], "intensity": row[3],
+                        "duration": row[4], "source": row[5]}
             Exercises.append(exercise)
         connection.close()
         return {"Exercises": Exercises}, 200
+
+    @classmethod
+    def senior_excercise(cls):
+        print('#######', 'here')
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        query = "SELECT * FROM exercise WHERE exercise_type=?"
+        result = cursor.execute(query, ('senior citizen',))
+
+        Exercises = []
+
+        for row in result.fetchall():
+            exercise = {"_id": row[0], "exercise_name": row[1], "exercise_type": row[2], "intensity": row[3],
+                        "duration": row[4], "source": row[5]}
+            Exercises.append(exercise)
+        connection.close()
+        return Exercises
+
+    @classmethod
+    def youth_excercise(cls):
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        query = "SELECT * FROM exercise WHERE exercise_type=?"
+        result = cursor.execute(query, ('youth citizen',))
+        Exercises = []
+
+        for row in result.fetchall():
+            exercise = {"_id": row[0], "exercise_name": row[1], "exercise_type": row[2], "intensity": row[3],
+                        "duration": row[4], "source": row[5]}
+            Exercises.append(exercise)
+        connection.close()
+        return Exercises
+
+

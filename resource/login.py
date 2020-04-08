@@ -1,8 +1,9 @@
 import sqlite3
 from flask_restful import Resource, reqparse
 from werkzeug.security import safe_str_cmp
-
+from resource.session import username_weight
 from resource.user import User
+import jwt
 
 
 class Login(Resource):
@@ -21,6 +22,6 @@ class Login(Resource):
         user = User.find_by_username(args['username'])
 
         if user and safe_str_cmp(user.password, args['password']):
-
+            username_weight(user.username, user.weight)
             return {"message": "login successfully"}, 200
         return {"message": "please check the credentials"}, 401

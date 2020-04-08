@@ -1,7 +1,7 @@
 import sqlite3
 import flask
 from flask_restful import Resource, reqparse
-
+from resource.session import username_weight
 
 class User:
     def __init__(self, _id, username, password, weight, age):
@@ -56,10 +56,6 @@ class UserRegister(Resource):
                         required=True,
                         type=str,
                         help='this field cannot be left empty')
-    parser.add_argument('password',
-                        required=True,
-                        type=str,
-                        help='this field cannot be left empty')
     parser.add_argument('weight',
                         required=True,
                         type=int,
@@ -79,11 +75,16 @@ class UserRegister(Resource):
             return {'message': 'The user_name {} is already exist'.format(data['username'])},  400
 
         query = "INSERT INTO user VALUES (NULL,?,?,?,?)"
-        cursor.execute(query, (data['username'], data['password'], data['weight'], data['age']))
+        try:
+            cursor.execute(query, (data['username'], data['password'], data['weight'], data['age']))
+        except:
+            return {"message": "User not created successfully"}, 501
         connection.commit()
         connection.close()
 
         return {"message": "User created  successfully."}, 201
+
+
 
 
 

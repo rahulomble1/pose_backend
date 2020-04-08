@@ -1,11 +1,14 @@
 from flask import Flask, jsonify, request
 import json
 from flask_restful import Resource, Api
+
+from resource.calorie import Calorie
 from resource.exercise import Exercise
 from flask_mail import Mail, Message
 from resource.encode import encode_audio, decode_audio_write_file
 from resource.login import Login
 from resource.user import UserRegister
+from resource.voice import Voice
 
 app = Flask(__name__)
 api = Api(app)
@@ -27,6 +30,12 @@ app.config.update(mail_settings)
 mail = Mail(app)
 mail.init_app(app)
 
+api.add_resource(Exercise, '/exercise')
+api.add_resource(UserRegister, '/register')
+api.add_resource(Login, '/login')
+api.add_resource(Calorie, '/calorie')
+api.add_resource(Voice, '/voice')
+
 
 @app.route('/email', methods=['POST'])
 def sent_email():
@@ -39,11 +48,6 @@ def sent_email():
 
     mail.send(msg)
     return jsonify({"message": "Email has been send"})
-
-
-api.add_resource(Exercise, '/exercise')
-api.add_resource(UserRegister, '/register')
-api.add_resource(Login, '/login')
 
 
 @app.route('/how_you_feeling', methods=['GET'])
