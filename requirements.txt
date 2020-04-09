@@ -10,3 +10,4 @@ ffmpeg-python
 ffmpeg
 Flask-Mail
 Flask-JWT-Extended
+gunicorn
