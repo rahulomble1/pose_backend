@@ -1,8 +1,11 @@
-from flask import request
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_jwt_claims
 from flask_restful import Resource, reqparse
 from resource.encode import decode_audio_write_file
 from resource.speech import speech_to_text
 import sqlite3
+
+from resource.user import User
 
 exercise_list = [
     {
@@ -56,8 +59,7 @@ exercise_list = [
 ]
 
 
-class Exercise(Resource):
-
+class ExerciseRegister(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('exercise_name',
                         type=str,
@@ -85,7 +87,7 @@ class Exercise(Resource):
                         help="This field cannot be left blank")
 
     def post(self):
-        args = Exercise.parser.parse_args()
+        args = ExerciseRegister.parser.parse_args()
         # data = request.get_json()
 
         exercise = {"exercise_name": args['exercise_name'],
@@ -127,12 +129,15 @@ class Exercise(Resource):
         return {"Exercises": Exercises}, 200
 
     @classmethod
-    def senior_excercise(cls):
-        print('#######', 'here')
+    def senior_excercise(cls, intensity=None):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
-        query = "SELECT * FROM exercise WHERE exercise_type=?"
-        result = cursor.execute(query, ('senior citizen',))
+        if intensity:
+            query = "SELECT * FROM exercise WHERE exercise_type=? and intensity=?"
+            result = cursor.execute(query, ('senior citizen', intensity))
+        else:
+            query = "SELECT * FROM exercise WHERE exercise_type=?"
+            result = cursor.execute(query, ('senior citizen',))
 
         Exercises = []
 
@@ -144,11 +149,15 @@ class Exercise(Resource):
         return Exercises
 
     @classmethod
-    def youth_excercise(cls):
+    def youth_excercise(cls, intensity=None):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
-        query = "SELECT * FROM exercise WHERE exercise_type=?"
-        result = cursor.execute(query, ('youth citizen',))
+        if intensity:
+            query = "SELECT * FROM exercise WHERE exercise_type=? and intensity=?"
+            result = cursor.execute(query, ('youth citizen', intensity))
+        else:
+            query = "SELECT * FROM exercise WHERE exercise_type=?"
+            result = cursor.execute(query, ('youth citizen',))
         Exercises = []
 
         for row in result.fetchall():
@@ -159,3 +168,61 @@ class Exercise(Resource):
         return Exercises
 
 
+class Exercise(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('intensity',
+                        type=str,
+                        required=True,
+                        help="This field cannot be left blank",
+                        choices=('basic low', 'intermediate medium', 'advanced high'))
+
+    @jwt_required
+    def post(self):
+        args = Exercise.parser.parse_args()
+        intensity = args['intensity']
+        if intensity:
+            username = get_jwt_claims()['username']
+            user = User.find_by_username(username)
+
+            try:
+                if user and user.age > 45:
+                    exercise_array = ExerciseRegister.senior_excercise(intensity)
+                elif user and user.age < 45:
+                    exercise_array = ExerciseRegister.youth_excercise(intensity)
+                return {"Exercise": exercise_array}, 200
+            except:
+                return {"message": 'internal server error'}, 501
+
+
+class Capture(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('intensity',
+                        type=str,
+                        required=True,
+                        help="This field cannot be left blank",
+                        choices=('basic low', 'intermediate medium', 'advanced high'))
+    parser.add_argument('exercise_name',
+                        type=str,
+                        required=True,
+                        help="This field cannot be left blank",
+                        )
+
+    @jwt_required
+    def post(self):
+        args = Capture.parser.parse_args()
+        intensity = args['intensity']
+        name = args['exercise_name']
+        if intensity:
+            username = get_jwt_claims()['username']
+            user = User.find_by_username(username)
+
+            try:
+                if user and user.age > 45:
+                    exercise_array = ExerciseRegister.senior_excercise(intensity)
+                    exercise = [exercise for exercise in exercise_array if name in exercise['exercise_name']][0]
+                elif user and user.age < 45:
+                    exercise_array = ExerciseRegister.youth_excercise(intensity)
+                    exercise = [exercise for exercise in exercise_array if name in exercise['exercise_name']][0]
+                return {"Exercise": exercise}, 200
+            except:
+                return {"message": 'internal server error'}, 501

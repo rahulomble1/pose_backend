@@ -19,7 +19,7 @@ class Calorie(Resource):
         weight = get_jwt_claims()['weight']
         intensity = "basic low"
 
-        MET_vector = {"basic low": 2, "intermediate medium": 5, "advanced high": 7}
+        MET_vector = {"basic low": 3, "intermediate medium": 6, "advanced high": 8}
         t_min = args['time'] / 60
 
         try:
@@ -29,5 +29,7 @@ class Calorie(Resource):
         except:
             return {"message": "Failed"}, 500
         print("#########", calorie_burn)
-        return {"calorie_burn": calorie_burn}
+        healthpoints = int(calorie_burn/10) * 5
+        print("#########", healthpoints)
+        return {"calorie_burn": calorie_burn, "healthpoints": healthpoints}
 

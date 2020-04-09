@@ -9,3 +9,4 @@ Werkzeug==1.0.0
 ffmpeg-python
 ffmpeg
 Flask-Mail
+Flask-JWT-Extended
