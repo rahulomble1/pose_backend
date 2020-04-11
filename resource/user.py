@@ -4,12 +4,11 @@ from flask_restful import Resource, reqparse
 
 
 class User:
-    def __init__(self, _id, username, password, weight, age, name):
+    def __init__(self, _id, username, password, age, name):
         self.id = _id
         self.name = name
         self.username = username
         self.password = password
-        self.weight = weight
         self.age = age
 
     @classmethod
@@ -57,10 +56,6 @@ class UserRegister(Resource):
                         required=True,
                         type=str,
                         help='this field cannot be left empty')
-    parser.add_argument('weight',
-                        required=True,
-                        type=int,
-                        help='this field cannot be left empty')
     parser.add_argument('age',
                         required=True,
                         type=int,
@@ -80,9 +75,9 @@ class UserRegister(Resource):
         if User.find_by_username(data['username']):
             return {'message': 'The user_name {} is already exist'.format(data['username'])}, 400
 
-        query = "INSERT INTO user VALUES (NULL,?,?,?,?,?)"
+        query = "INSERT INTO user VALUES (NULL,?,?,?,?)"
         try:
-            cursor.execute(query, (data['username'], data['password'], data['weight'], data['age'], data['name']))
+            cursor.execute(query, (data['username'], data['password'], data['age'], data['name']))
         except:
             return {"message": "User not created successfully"}, 501
         connection.commit()

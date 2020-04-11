@@ -1,6 +1,7 @@
 from flask_jwt_extended import jwt_required, get_jwt_claims
 from flask_restful import Resource, reqparse
 from resource.encode import decode_audio_write_file
+from resource.exercise import Capture
 from resource.speech import speech_to_text
 from resource.user import User
 from resource.weight import Weight
@@ -12,6 +13,10 @@ class Calorie(Resource):
                         type=int,
                         required=True,
                         help="This field cannot be left empty")
+    parser.add_argument('exercise_id',
+                        type=int,
+                        required=True,
+                        help="This field cannot be left empty")
 
     @jwt_required
     def post(self):
@@ -20,7 +25,9 @@ class Calorie(Resource):
         username = get_jwt_claims()['username']
         weight = Weight.get_weight(username)
         print("Weight #######", weight)
-        intensity = "basic low"
+        exercise_id = args['exercise_id']
+        exercise = Capture.get_exercise(exercise_id)
+        intensity = exercise['intensity']
 
         MET_vector = {"basic low": 3, "intermediate medium": 6, "advanced high": 8}
         t_min = args['time'] / 60
@@ -31,6 +38,6 @@ class Calorie(Resource):
             calorie_burn = (t_min * MET * 3.5 * wt_kg) / 200
         except:
             return {"message": "Failed"}, 500
-        healthpoints = int(calorie_burn/10) * 5
+        healthpoints = int(calorie_burn/2) * 5
         return {"calorie_burn": calorie_burn, "healthpoints": healthpoints}
 

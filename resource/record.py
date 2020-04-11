@@ -4,15 +4,15 @@ import sqlite3
 import datetime
 
 
-class Record(Resource):
+class WeightRecord(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('user_time',
+    parser.add_argument('current_time',
                         type=int,
                         required=True,
                         help="This field cannot be left blank",
                         )
 
-    parser.add_argument('total_time',
+    parser.add_argument('goal_time',
                         type=int,
                         required=True,
                         help="This field cannot be left blank",
@@ -24,19 +24,31 @@ class Record(Resource):
                         help="This field cannot be left blank",
                         )
 
+    put_parser = reqparse.RequestParser()
+    put_parser.add_argument('current_time',
+                            type=int,
+                            required=True,
+                            help="This field cannot be left blank",
+                            )
+
+    put_parser.add_argument('exercise_id',
+                            type=int,
+                            required=True,
+                            help="This field cannot be left blank",
+                            )
+
     @jwt_required
     def post(self):
-        args = Record.parser.parse_args()
-        user_time = args['user_time']
-        total_time = args['total_time']
+        args = WeightRecord.parser.parse_args()
+        current_time = args['current_time']
         exercise_id = args['exercise_id']
+        goal_time = args['goal_time']
         username = get_jwt_claims()['username']
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
         try:
             query = "INSERT INTO exercise_record VALUES(NULL,?,?,?,?,?)"
-            cursor.execute(query, (username, datetime.datetime.today(), exercise_id, user_time, total_time))
-            print("#######")
+            cursor.execute(query, (username, datetime.datetime.today(), exercise_id, current_time, goal_time))
             connection.commit()
             connection.close()
             return {"message": "user exercise data stored successfully"}, 201
@@ -44,23 +56,154 @@ class Record(Resource):
             return {"message": "internal server error"}, 501
 
     @jwt_required
-    def get(self):
+    def put(self):
+        args = WeightRecord.put_parser.parse_args()
+
+        username = get_jwt_claims()['username']
+        record = WeightRecord.get_record(username)
+        goal_time = record['goal_time']
+        current_time = record['current_time']
+
+        new_current_time = current_time + args['current_time']
+
+        exercise_id = args['exercise_id']
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
-        username = get_jwt_claims()['username']
         try:
-            query = "SELECT * FROM exercise_record WHERE username =? ORDER BY date DESC limit 1"
-            result = cursor.execute(query, (username,))
-            record_list = []
-            for row in result.fetchall():
-                record = {"id": row[0],
-                          "username": row[1],
-                          "date": row[2],
-                          "exercise_id": row[3],
-                          "user_time": row[4],
-                          "total_time": row[5]}
-                record_list.append(record)
-                connection.close()
-            return {"record": record_list}, 200
+            query = "UPDATE exercise_record SET date =?, exercise_id =?, current_time =? WHERE username = ?"
+            cursor.execute(query, (datetime.datetime.today(), exercise_id, new_current_time, username))
+            connection.commit()
+            connection.close()
+            return {"message": "user exercise data updated successfully"}, 201
         except:
             return {"message": "internal server error"}, 501
+
+    @jwt_required
+    def get(self):
+        username = get_jwt_claims()['username']
+        try:
+            record = WeightRecord.get_record(username)
+            return {"record": record}, 200
+        except:
+            return {"message": "internal server error"}, 501
+
+    @classmethod
+    def get_record(cls, username):
+
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        query = "SELECT * FROM exercise_record WHERE username =? ORDER BY date DESC limit 1"
+        result = cursor.execute(query, (username,))
+        row = result.fetchone()
+        remaining_time = row[5] - row[4]
+        record = {"id": row[0],
+                  "username": row[1],
+                  "date": row[2],
+                  "exercise_id": row[3],
+                  "current_time": row[4],
+                  "goal_time": row[5],
+                  "remaining_time": remaining_time}
+        connection.close()
+        return record
+
+
+class CalorieRecord(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('current_calories',
+                        type=int,
+                        required=True,
+                        help="This field cannot be left blank",
+                        )
+
+    parser.add_argument('goal_calories',
+                        type=int,
+                        required=True,
+                        help="This field cannot be left blank",
+                        )
+
+    parser.add_argument('exercise_id',
+                        type=int,
+                        required=True,
+                        help="This field cannot be left blank",
+                        )
+
+    put_parser = reqparse.RequestParser()
+    put_parser.add_argument('current_calories',
+                            type=int,
+                            required=True,
+                            help="This field cannot be left blank",
+                            )
+
+    put_parser.add_argument('exercise_id',
+                            type=int,
+                            required=True,
+                            help="This field cannot be left blank",
+                            )
+
+    @jwt_required
+    def post(self):
+        args = CalorieRecord.parser.parse_args()
+        current_calories = args['current_calories']
+        exercise_id = args['exercise_id']
+        goal_calories = args['goal_calories']
+        username = get_jwt_claims()['username']
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        try:
+            query = "INSERT INTO calorie_record VALUES(NULL,?,?,?,?,?)"
+            cursor.execute(query, (username, datetime.datetime.today(), exercise_id, current_calories, goal_calories))
+            connection.commit()
+            connection.close()
+            return {"message": "user exercise data stored successfully"}, 201
+        except:
+            return {"message": "internal server error"}, 501
+
+    @jwt_required
+    def put(self):
+        args = CalorieRecord.put_parser.parse_args()
+
+        username = get_jwt_claims()['username']
+        record = CalorieRecord.get_record(username)
+        goal_calories = record['goal_calories']
+        current_calories = record['current_calories']
+        new_current_calories = current_calories + args['current_calories']
+
+        exercise_id = args['exercise_id']
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        # try:
+        query = "UPDATE calorie_record SET date =?, exercise_id =?, current_calories =? WHERE username = ?"
+        cursor.execute(query, (datetime.datetime.today(), exercise_id, new_current_calories, username))
+        connection.commit()
+        connection.close()
+        return {"message": "user calories data updated successfully"}, 201
+        # except:
+        #     return {"message": "internal server error"}, 501
+
+    @jwt_required
+    def get(self):
+        username = get_jwt_claims()['username']
+        try:
+            record = CalorieRecord.get_record(username)
+            return {"record": record}, 200
+        except:
+            return {"message": "internal server error"}, 501
+
+    @classmethod
+    def get_record(cls, username):
+
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        query = "SELECT * FROM calorie_record WHERE username =? ORDER BY date DESC limit 1"
+        result = cursor.execute(query, (username,))
+        row = result.fetchone()
+        remaining_calories = row[5] - row[4]
+        record = {"id": row[0],
+                  "username": row[1],
+                  "date": row[2],
+                  "exercise_id": row[3],
+                  "current_calories": row[4],
+                  "goal_calories": row[5],
+                  "remaining_calories": remaining_calories}
+        connection.close()
+        return record

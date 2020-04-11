@@ -213,16 +213,23 @@ class Capture(Resource):
         exercise_id = args['exercise_id']
 
         if exercise_id:
+            exercise = Capture.get_exercise(exercise_id)
 
-            connection = sqlite3.connect('data.db')
-            cursor = connection.cursor()
-            try:
-                query = "SELECT * FROM exercise WHERE id=?"
-                result = cursor.execute(query, (exercise_id,))
-                row = result.fetchone()
-                exercise = {"_id": row[0], "exercise_name": row[1], "exercise_type": row[2], "intensity": row[3],
-                            "duration": row[4], "source": row[5], "description": row[6]}
-                connection.close()
-                return {"exercise": exercise}, 200
-            except:
-                return {"message": "internal server error"}, 501
+            return {"exercise": exercise}, 200
+        return {"message": "internal server error"}, 501
+
+    @classmethod
+    def get_exercise(cls, exercise_id):
+
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        try:
+            query = "SELECT * FROM exercise WHERE id=?"
+            result = cursor.execute(query, (exercise_id,))
+            row = result.fetchone()
+            exercise = {"_id": row[0], "exercise_name": row[1], "exercise_type": row[2], "intensity": row[3],
+                        "duration": row[4], "source": row[5], "description": row[6]}
+            connection.close()
+            return exercise
+        except:
+            exercise = {}

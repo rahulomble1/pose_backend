@@ -3,7 +3,7 @@ connection = sqlite3.connect('data.db')
 cursor = connection.cursor()
 
 create_table = "CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY, username text, password text, " \
-               "weight INTEGER, age INTEGER, name text) "
+               "age INTEGER, name text) "
 cursor.execute(create_table)
 
 create_table = "CREATE TABLE IF NOT EXISTS exercise (id INTEGER PRIMARY KEY, exercise_name text, " \
@@ -15,12 +15,16 @@ create_table = "CREATE TABLE IF NOT EXISTS feedback (id INTEGER PRIMARY KEY, eff
 cursor.execute(create_table)
 
 create_table = "CREATE TABLE IF NOT EXISTS exercise_record (id INTEGER PRIMARY KEY, username text, " \
-               "date Date, exercise_id INTEGER, user_time INTEGER , total_time INTEGER) "
+               "date Date, exercise_id INTEGER, current_time INTEGER , goal_time INTEGER) "
 cursor.execute(create_table)
 
 
 create_table = "CREATE TABLE IF NOT EXISTS user_data (id INTEGER PRIMARY KEY, username text, " \
                "date Date, weight real) "
+cursor.execute(create_table)
+
+create_table = "CREATE TABLE IF NOT EXISTS calorie_record (id INTEGER PRIMARY KEY, username text, " \
+               "date Date, exercise_id INTEGER, current_calories INTEGER , goal_calories INTEGER) "
 cursor.execute(create_table)
 
 connection.commit()

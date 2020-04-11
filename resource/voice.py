@@ -22,10 +22,10 @@ class Voice(Resource):
             decode_audio_write_file(args["audio"])
         except:
             return {"message": "decoding internal server error"}, 501
-        # try:
-        text = speech_to_text('resource/abc.mp3')
-        # except :
-        #     return {"message": "speech to text conversion failed"}
+        try:
+            text = speech_to_text('resource/abc.mp3')
+        except:
+            return {"message": "speech to text conversion failed"}
         # text = "exercise"
         print("transcribed text", text)
         if text:
@@ -34,6 +34,8 @@ class Voice(Resource):
             elif "yoga" in text:
                 return {"text": text,  "valid": True}, 200
             elif "Tai" in text or "chi" in text:
+                return {"text": text,  "valid": True}, 200
+            elif "ready" in text:
                 return {"text": text,  "valid": True}, 200
             return {"text": text,  "valid": False}, 501
         return {"message": "no text detected", "valid": False},  501

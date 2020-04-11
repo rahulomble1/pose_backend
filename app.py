@@ -10,7 +10,7 @@ from resource.exercise import Exercise, ExerciseRegister, Capture
 from flask_mail import Mail, Message
 from resource.encode import encode_audio
 from resource.feedback import Feedback
-from resource.record import Record
+from resource.record import WeightRecord, CalorieRecord
 from resource.user import UserRegister
 from resource.voice import Voice
 from resource.weight import Weight
@@ -140,7 +140,6 @@ class Login(Resource):
         args = Login.parser.parse_args()
         user = User.find_by_username(args['username'])
         return {'username': user.username,
-                'weight': user.weight,
                 'age': user.age}
 
 
@@ -152,7 +151,8 @@ api.add_resource(UserRegister, '/register')
 api.add_resource(Login, '/login')
 api.add_resource(Calorie, '/calorie')
 api.add_resource(Voice, '/voice')
-api.add_resource(Record, '/record')
+api.add_resource(WeightRecord, '/weight_record')
+api.add_resource(CalorieRecord, '/calorie_record')
 api.add_resource(Weight, '/weight')
 
 if __name__ == "__main__":
