@@ -2,10 +2,10 @@ FROM nginx
 
 RUN rm /etc/nginx/conf.d/default.conf
 
-COPY nginx.conf /etc/nginx/conf.d/
+COPY physio_flask_backend/nginx/nginx.conf /etc/nginx/conf.d/
 
-COPY ssl/physio.coreviewsystems.com.crt /etc/nginx/
+COPY ./ssl/physio.coreviewsystems.com.crt /etc/nginx/
 
-COPY ssl/physio.coreviewsystems.com.key /etc/nginx/
+COPY ./ssl/physio.coreviewsystems.com.key /etc/nginx/
 
 CMD ["nginx", "-g", "daemon off;"]

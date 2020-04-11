@@ -16,9 +16,11 @@ services:
       host
 
   nginx:
-    build: ./nginx
+    build:
+        context: ../
+        dockerfile: physio_flask_backend/nginx/Dockerfile
     container_name: nginx
     depends_on:
-      - pose-backend-service_flask
+     - pose-backend-service_flask
     ports:
-    -  8084:8084
+     -  8084:8084

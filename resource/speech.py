@@ -42,10 +42,10 @@ def speech_to_text(audio_file_name):
     frame_rate, channels = frame_rate_channel(audio_file_name)
 
     # if channels > 1:
+
     stereo_to_mono(audio_file_name)
 
     client = speech_v1.SpeechClient()
-
     # local_file_path = 'resources/brooklyn_bridge.raw'
 
     # The language of the supplied audio
@@ -63,15 +63,22 @@ def speech_to_text(audio_file_name):
         "encoding": encoding,
     }
 
+
     with io.open(audio_file_name, "rb") as f:
+
         content = f.read()
     audio = {"content": content}
     response = client.recognize(config, audio)
+    alternative = None
     for result in response.results:
         # First alternative is the most probable result
         alternative = result.alternatives[0]
+
         print("Transcript: {}".format(alternative.transcript))
-    return alternative.transcript
+    if alternative:
+        return alternative.transcript
+    else:
+        return None
 
 
 # print(sample_recognize('bad.mp3'))

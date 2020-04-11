@@ -3,6 +3,7 @@ from flask_restful import Resource, reqparse
 from resource.encode import decode_audio_write_file
 from resource.speech import speech_to_text
 from resource.user import User
+from resource.weight import Weight
 
 
 class Calorie(Resource):
@@ -16,7 +17,9 @@ class Calorie(Resource):
     def post(self):
 
         args = Calorie.parser.parse_args()
-        weight = get_jwt_claims()['weight']
+        username = get_jwt_claims()['username']
+        weight = Weight.get_weight(username)
+        print("Weight #######", weight)
         intensity = "basic low"
 
         MET_vector = {"basic low": 3, "intermediate medium": 6, "advanced high": 8}
@@ -28,8 +31,6 @@ class Calorie(Resource):
             calorie_burn = (t_min * MET * 3.5 * wt_kg) / 200
         except:
             return {"message": "Failed"}, 500
-        print("#########", calorie_burn)
         healthpoints = int(calorie_burn/10) * 5
-        print("#########", healthpoints)
         return {"calorie_burn": calorie_burn, "healthpoints": healthpoints}
 

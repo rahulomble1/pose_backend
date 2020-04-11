@@ -1,3 +1,4 @@
+flask-cors
 ffprobe==0.5
 Flask==1.1.1
 Flask-RESTful==0.3.8

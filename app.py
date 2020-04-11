@@ -1,6 +1,8 @@
+import datetime
+
 from flask import Flask, jsonify, request
 import json
-
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
 from resource.calorie import Calorie
@@ -8,11 +10,13 @@ from resource.exercise import Exercise, ExerciseRegister, Capture
 from flask_mail import Mail, Message
 from resource.encode import encode_audio
 from resource.feedback import Feedback
+from resource.record import Record
 from resource.user import UserRegister
 from resource.voice import Voice
-
+from resource.weight import Weight
 
 app = Flask(__name__)
+cors = CORS(app, resources={r"*": {"origins": "*"}})
 api = Api(app)
 
 app.config['JWT_SECRET_KEY'] = 'physio'
@@ -126,7 +130,8 @@ class Login(Resource):
         user = User.find_by_username(args['username'])
 
         if user and safe_str_cmp(user.password, args['password']):
-            ret = {'access_token': create_access_token(user.username)}
+            expires = datetime.timedelta(days=365)
+            ret = {'access_token': create_access_token(user.username, expires_delta=expires)}
             return ret, 200
         return {"message": "please check the credentials"}, 401
 
@@ -147,6 +152,8 @@ api.add_resource(UserRegister, '/register')
 api.add_resource(Login, '/login')
 api.add_resource(Calorie, '/calorie')
 api.add_resource(Voice, '/voice')
+api.add_resource(Record, '/record')
+api.add_resource(Weight, '/weight')
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

@@ -85,6 +85,10 @@ class ExerciseRegister(Resource):
                         type=str,
                         required=True,
                         help="This field cannot be left blank")
+    parser.add_argument('description',
+                        type=str,
+                        required=True,
+                        help="This field cannot be left blank")
 
     def post(self):
         args = ExerciseRegister.parser.parse_args()
@@ -94,7 +98,8 @@ class ExerciseRegister(Resource):
                     "exercise_type": args['exercise_type'],
                     "intensity": args['intensity'],
                     "duration": args['duration'],
-                    "source": args['source']}
+                    "source": args['source'],
+                    "description": args['description']}
         try:
             self.insert(exercise)
         except:
@@ -107,10 +112,10 @@ class ExerciseRegister(Resource):
 
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
-        query = "INSERT INTO exercise VALUES (NULL,?,?,?,?,?)"
+        query = "INSERT INTO exercise VALUES (NULL,?,?,?,?,?,?)"
         cursor.execute(query, (
             exercise['exercise_name'], exercise['exercise_type'], exercise['intensity'], exercise['duration'],
-            exercise['source']))
+            exercise['source']), exercise['description'])
         connection.commit()
         connection.close()
 
@@ -123,7 +128,7 @@ class ExerciseRegister(Resource):
 
         for row in result.fetchall():
             exercise = {"_id": row[0], "exercise_name": row[1], "exercise_type": row[2], "intensity": row[3],
-                        "duration": row[4], "source": row[5]}
+                        "duration": row[4], "source": row[5], "description": row[6]}
             Exercises.append(exercise)
         connection.close()
         return {"Exercises": Exercises}, 200
@@ -143,7 +148,7 @@ class ExerciseRegister(Resource):
 
         for row in result.fetchall():
             exercise = {"_id": row[0], "exercise_name": row[1], "exercise_type": row[2], "intensity": row[3],
-                        "duration": row[4], "source": row[5]}
+                        "duration": row[4], "source": row[5], "description": row[6]}
             Exercises.append(exercise)
         connection.close()
         return Exercises
@@ -162,7 +167,7 @@ class ExerciseRegister(Resource):
 
         for row in result.fetchall():
             exercise = {"_id": row[0], "exercise_name": row[1], "exercise_type": row[2], "intensity": row[3],
-                        "duration": row[4], "source": row[5]}
+                        "duration": row[4], "source": row[5], "description": row[6]}
             Exercises.append(exercise)
         connection.close()
         return Exercises
@@ -196,12 +201,7 @@ class Exercise(Resource):
 
 class Capture(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('intensity',
-                        type=str,
-                        required=True,
-                        help="This field cannot be left blank",
-                        choices=('basic low', 'intermediate medium', 'advanced high'))
-    parser.add_argument('exercise_name',
+    parser.add_argument('exercise_id',
                         type=str,
                         required=True,
                         help="This field cannot be left blank",
@@ -210,19 +210,19 @@ class Capture(Resource):
     @jwt_required
     def post(self):
         args = Capture.parser.parse_args()
-        intensity = args['intensity']
-        name = args['exercise_name']
-        if intensity:
-            username = get_jwt_claims()['username']
-            user = User.find_by_username(username)
+        exercise_id = args['exercise_id']
 
+        if exercise_id:
+
+            connection = sqlite3.connect('data.db')
+            cursor = connection.cursor()
             try:
-                if user and user.age > 45:
-                    exercise_array = ExerciseRegister.senior_excercise(intensity)
-                    exercise = [exercise for exercise in exercise_array if name in exercise['exercise_name']][0]
-                elif user and user.age < 45:
-                    exercise_array = ExerciseRegister.youth_excercise(intensity)
-                    exercise = [exercise for exercise in exercise_array if name in exercise['exercise_name']][0]
-                return {"Exercise": exercise}, 200
+                query = "SELECT * FROM exercise WHERE id=?"
+                result = cursor.execute(query, (exercise_id,))
+                row = result.fetchone()
+                exercise = {"_id": row[0], "exercise_name": row[1], "exercise_type": row[2], "intensity": row[3],
+                            "duration": row[4], "source": row[5], "description": row[6]}
+                connection.close()
+                return {"exercise": exercise}, 200
             except:
-                return {"message": 'internal server error'}, 501
+                return {"message": "internal server error"}, 501

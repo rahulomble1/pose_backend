@@ -21,25 +21,3 @@ EXPOSE 5000
 
 ENTRYPOINT ["gunicorn","--bind","0.0.0.0:5000","wsgi"]
 
-
-
-
-
-
-#
-#
-## set the base image
-#FROM python:3.6
-##add project files to the usr/src/app folder
-#ADD . /app
-##set directoty where CMD will execute
-#WORKDIR /app
-#
-#
-## Get pip to download and install requirements:
-#RUN pip install --no-cache-dir -r requirements.txt
-#
-## run the command to start uWSGI
-#
-#CMD ["uwsgi", "app.ini"]
-
