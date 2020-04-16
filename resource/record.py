@@ -62,30 +62,32 @@ class WeightRecord(Resource):
         username = get_jwt_claims()['username']
         record = WeightRecord.get_record(username)
         goal_time = record['goal_time']
+        today_time = args['current_time']
         current_time = record['current_time']
 
-        new_current_time = current_time + args['current_time']
+        new_current_time = current_time + today_time
 
         exercise_id = args['exercise_id']
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
         try:
-            query = "UPDATE exercise_record SET date =?, exercise_id =?, current_time =? WHERE username = ?"
-            cursor.execute(query, (datetime.datetime.today(), exercise_id, new_current_time, username))
+            query = "UPDATE exercise_record SET date =?, exercise_id =?, current_time =?, today_time=? WHERE username " \
+                    "= ? "
+            cursor.execute(query, (datetime.datetime.today(), exercise_id, new_current_time, today_time, username))
             connection.commit()
             connection.close()
-            return {"message": "user exercise data updated successfully"}, 201
+            return {"message": "user exercise data updated successfully", "code": 201}, 201
         except:
-            return {"message": "internal server error"}, 501
+            return {"message": "internal server error", "code": 501}, 501
 
     @jwt_required
     def get(self):
         username = get_jwt_claims()['username']
         try:
             record = WeightRecord.get_record(username)
-            return {"record": record}, 200
+            return {"record": record, "code": 200}, 200
         except:
-            return {"message": "internal server error"}, 501
+            return {"message": "internal server error", "code": 501}, 501
 
     @classmethod
     def get_record(cls, username):
@@ -95,6 +97,7 @@ class WeightRecord(Resource):
         query = "SELECT * FROM exercise_record WHERE username =? ORDER BY date DESC limit 1"
         result = cursor.execute(query, (username,))
         row = result.fetchone()
+        print("###########", username)
         remaining_time = row[5] - row[4]
         record = {"id": row[0],
                   "username": row[1],
@@ -102,6 +105,7 @@ class WeightRecord(Resource):
                   "exercise_id": row[3],
                   "current_time": row[4],
                   "goal_time": row[5],
+                  "today_time": row[6],
                   "remaining_time": remaining_time}
         connection.close()
         return record
@@ -154,40 +158,42 @@ class CalorieRecord(Resource):
             cursor.execute(query, (username, datetime.datetime.today(), exercise_id, current_calories, goal_calories))
             connection.commit()
             connection.close()
-            return {"message": "user exercise data stored successfully"}, 201
+            return {"message": "user exercise data stored successfully", "code": 201}, 201
         except:
-            return {"message": "internal server error"}, 501
+            return {"message": "internal server error", "code": 501}, 501
 
     @jwt_required
     def put(self):
         args = CalorieRecord.put_parser.parse_args()
-
+        today_calories = args['current_calories']
         username = get_jwt_claims()['username']
         record = CalorieRecord.get_record(username)
         goal_calories = record['goal_calories']
         current_calories = record['current_calories']
-        new_current_calories = current_calories + args['current_calories']
+        new_current_calories = current_calories + today_calories
 
         exercise_id = args['exercise_id']
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
-        # try:
-        query = "UPDATE calorie_record SET date =?, exercise_id =?, current_calories =? WHERE username = ?"
-        cursor.execute(query, (datetime.datetime.today(), exercise_id, new_current_calories, username))
-        connection.commit()
-        connection.close()
-        return {"message": "user calories data updated successfully"}, 201
-        # except:
-        #     return {"message": "internal server error"}, 501
+        try:
+            query = "UPDATE calorie_record SET date =?, exercise_id =?, current_calories =?, today_calories=? WHERE " \
+                    "username = ? "
+            cursor.execute(query,
+                           (datetime.datetime.today(), exercise_id, new_current_calories, today_calories, username))
+            connection.commit()
+            connection.close()
+            return {"message": "user calories data updated successfully", "code": 204}, 204
+        except:
+            return {"message": "internal server error", "code": 501}, 501
 
     @jwt_required
     def get(self):
         username = get_jwt_claims()['username']
         try:
             record = CalorieRecord.get_record(username)
-            return {"record": record}, 200
+            return {"record": record, "code": 200}, 200
         except:
-            return {"message": "internal server error"}, 501
+            return {"message": "internal server error", "code": 501}, 501
 
     @classmethod
     def get_record(cls, username):
@@ -204,6 +210,45 @@ class CalorieRecord(Resource):
                   "exercise_id": row[3],
                   "current_calories": row[4],
                   "goal_calories": row[5],
+                  "today_calories": row[6],
                   "remaining_calories": remaining_calories}
+        connection.close()
+        return record
+
+
+class Reward(Resource):
+
+    @classmethod
+    def update_reward(cls, exercise_id, healthpoints):
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        username = get_jwt_claims()['username']
+        record = Reward.get_healthpoint(username)
+        current_healthpoint = record['total_healthpoint']
+        total_healthpoint = current_healthpoint + healthpoints
+        query = "UPDATE reward SET exercise_id =?, total_healthpoints=? WHERE username=?"
+        cursor.execute(query, (exercise_id, total_healthpoint, username))
+        connection.commit()
+        connection.close()
+
+    @jwt_required
+    def get(self):
+        username = get_jwt_claims()['username']
+        try:
+            record = Reward.get_healthpoint(username)
+            if len(record) >= 1:
+                return record, 200
+        except:
+            return {"message": "internal server error", "code": 501}, 501
+
+    @classmethod
+    def get_healthpoint(cls, username):
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        username = get_jwt_claims()['username']
+        query = "SELECT total_healthpoints FROM REWARD where username=?"
+        result = cursor.execute(query, (username,))
+        row = result.fetchone()
+        record = {'total_healthpoint': row[0], "code": 200}
         connection.close()
         return record

@@ -24,9 +24,9 @@ class Weight(Resource):
             cursor.execute(query, (username, datetime.datetime.today(), user_weight))
             connection.commit()
             connection.close()
-            return {"message": "weight stored successfully"}, 201
+            return {"message": "weight stored successfully", "code": 201}, 201
         except:
-            return {"message": "internal server error"}, 501
+            return {"message": "internal server error", "code": 501}, 501
 
     @classmethod
     def get_weight(cls, username):

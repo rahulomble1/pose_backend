@@ -7,10 +7,10 @@ import datetime
 class Feedback(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('effort_score',
-                        type=int,
+                        type=str,
                         required=True,
                         help="This field cannot be left blank",
-                        choices=(1, 2, 3, 4, 5)
+                        choices=("0", "1", "2", "3", "4", "5")
                         )
 
     parser.add_argument('exercise_id',
@@ -32,9 +32,9 @@ class Feedback(Resource):
             cursor.execute(query, (effort_score, username, datetime.datetime.today(), exercise_id))
             connection.commit()
             connection.close()
-            return {"message": "feedback stored successfully"}, 201
+            return {"message": "feedback stored successfully", "code": 201}, 201
         except:
-            return {"message": "internal server error"}, 501
+            return {"message": "internal server error", "code": 501}, 501
 
     def get(self):
         connection = sqlite3.connect('data.db')

@@ -174,29 +174,23 @@ class ExerciseRegister(Resource):
 
 
 class Exercise(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('intensity',
-                        type=str,
-                        required=True,
-                        help="This field cannot be left blank",
-                        choices=('basic low', 'intermediate medium', 'advanced high'))
 
     @jwt_required
-    def post(self):
-        args = Exercise.parser.parse_args()
-        intensity = args['intensity']
-        if intensity:
-            username = get_jwt_claims()['username']
-            user = User.find_by_username(username)
+    def get(self):
+        # args = Exercise.parser.parse_args()
+        # intensity = args['intensity']
+        # if intensity:
+        username = get_jwt_claims()['username']
+        user = User.find_by_username(username)
 
-            try:
-                if user and user.age > 45:
-                    exercise_array = ExerciseRegister.senior_excercise(intensity)
-                elif user and user.age < 45:
-                    exercise_array = ExerciseRegister.youth_excercise(intensity)
-                return {"Exercise": exercise_array}, 200
-            except:
-                return {"message": 'internal server error'}, 501
+        try:
+            if user and user.age > 45:
+                exercise_array = ExerciseRegister.senior_excercise()
+            elif user and user.age < 45:
+                exercise_array = ExerciseRegister.youth_excercise()
+            return {"Exercise": exercise_array, "code": 200}, 200
+        except:
+            return {"message": 'internal server error', "code": 501}, 501
 
 
 class Capture(Resource):
@@ -214,15 +208,17 @@ class Capture(Resource):
 
         if exercise_id:
             exercise = Capture.get_exercise(exercise_id)
-
-            return {"exercise": exercise}, 200
-        return {"message": "internal server error"}, 501
+            if len(exercise) >= 1:
+                return {"exercise": exercise, "code": 200}, 200
+        return {"message": "internal server error", "code":501}, 501
 
     @classmethod
     def get_exercise(cls, exercise_id):
 
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
+
+        exercise = {}
         try:
             query = "SELECT * FROM exercise WHERE id=?"
             result = cursor.execute(query, (exercise_id,))
@@ -232,4 +228,4 @@ class Capture(Resource):
             connection.close()
             return exercise
         except:
-            exercise = {}
+            return exercise

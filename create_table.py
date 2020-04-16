@@ -10,12 +10,12 @@ create_table = "CREATE TABLE IF NOT EXISTS exercise (id INTEGER PRIMARY KEY, exe
                "exercise_type text, intensity text, duration INTEGER, source text, description text)"
 cursor.execute(create_table)
 
-create_table = "CREATE TABLE IF NOT EXISTS feedback (id INTEGER PRIMARY KEY, effort_score INTEGER, username text, " \
+create_table = "CREATE TABLE IF NOT EXISTS feedback (id INTEGER PRIMARY KEY, effort_score text, username text, " \
                "date Date, exercise_id INTEGER) "
 cursor.execute(create_table)
 
 create_table = "CREATE TABLE IF NOT EXISTS exercise_record (id INTEGER PRIMARY KEY, username text, " \
-               "date Date, exercise_id INTEGER, current_time INTEGER , goal_time INTEGER) "
+               "date Date, exercise_id INTEGER, current_time INTEGER , goal_time INTEGER, today_time INTEGER) "
 cursor.execute(create_table)
 
 
@@ -24,7 +24,11 @@ create_table = "CREATE TABLE IF NOT EXISTS user_data (id INTEGER PRIMARY KEY, us
 cursor.execute(create_table)
 
 create_table = "CREATE TABLE IF NOT EXISTS calorie_record (id INTEGER PRIMARY KEY, username text, " \
-               "date Date, exercise_id INTEGER, current_calories INTEGER , goal_calories INTEGER) "
+               "date Date, exercise_id INTEGER, current_calories INTEGER , goal_calories INTEGER, today_calories INTEGER) "
+cursor.execute(create_table)
+
+create_table = "CREATE TABLE IF NOT EXISTS reward (id INTEGER PRIMARY KEY, username text, " \
+               "exercise_id INTEGER, total_healthpoints INTEGER) "
 cursor.execute(create_table)
 
 connection.commit()
