@@ -1,5 +1,4 @@
 import sqlite3
-import flask
 from flask_restful import Resource, reqparse
 
 
